@@ -6,37 +6,55 @@ class DigitalTimer extends Component {
   state = {
     isTimerRunning: false,
     timer: 25,
-    seconds: '00',
     minutes: 25,
+    seconds: '00',
   }
 
   onStartOrPauseTimer = () => {
     this.setState(prevState => ({isTimerRunning: !prevState.isTimerRunning}))
-    this.timerID = setInterval(this.tick, 1000)
+    this.timerID = setInterval(() => {
+      const {seconds, minutes} = this.state
+      let resultantSeconds = minutes * 60 + parseInt(seconds)
+      resultantSeconds -= 1
+      this.setState({
+        seconds: resultantSeconds % 60,
+        minutes: Math.floor(resultantSeconds / 60),
+      })
+    }, 1000)
   }
 
   onResetTimer = () => {
-    this.setState(prevState => ({isTimerRunning: !prevState.isTimerRunning}))
+    this.setState(prevState => ({
+      isTimerRunning: !prevState.isTimerRunning,
+      minutes: 25,
+      seconds: '00',
+    }))
+    clearInterval(this.timerID)
   }
 
   onIncrement = () => {
     this.setState(prevState => ({
       timer: prevState.timer + 1,
+      minutes: parseInt(prevState.minutes) + 1,
     }))
   }
 
   onDecrement = () => {
-    this.setState(prevState => ({timer: prevState.timer - 1}))
-  }
-
-  tick = () => {
-    const {minutes} = this.state
-    const resultMinutes = parseInt(minutes) * 60
-    this.setState({seconds: resultMinutes - 1})
+    const {isTimerRunning} = this.state
+    if (isTimerRunning) {
+      this.setState(prevState => ({
+        timer: prevState.timer,
+      }))
+    } else {
+      this.setState(prevState => ({
+        timer: prevState.timer - 1,
+        minutes: parseInt(prevState.minutes) - 1,
+      }))
+    }
   }
 
   render() {
-    const {isTimerRunning, timer, seconds} = this.state
+    const {isTimerRunning, minutes, timer, seconds} = this.state
     const startOrPauseAltText = isTimerRunning ? 'pause icon' : 'play icon'
     const startOrPauseImageUrl = isTimerRunning
       ? 'https://assets.ccbp.in/frontend/react-js/pause-icon-img.png '
@@ -50,7 +68,7 @@ class DigitalTimer extends Component {
             <div className="runningTimer-container">
               <div className="time-container">
                 <h1 className="running-time">
-                  {timer}:{seconds}
+                  {minutes}:{seconds}
                 </h1>
                 <p className="description">{timerText}</p>
               </div>
